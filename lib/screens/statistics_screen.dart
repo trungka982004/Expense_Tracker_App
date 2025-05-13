@@ -6,6 +6,7 @@ import 'dart:math' show max;
 import '../providers/expense_provider.dart';
 import '../providers/settings_provider.dart';
 import 'package:expense_tracker_app/models/category.dart' as myapp;
+import 'package:flutter/services.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -20,56 +21,60 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(settingsProvider.translate('statistics')),
-        actions: [
-          DropdownButton<String>(
-            value: _selectedPeriod,
-            items: [
-              settingsProvider.language == 'vi' ? 'Tuần Này' : 'This Week',
-              settingsProvider.language == 'vi' ? 'Tháng Này' : 'This Month',
-              settingsProvider.language == 'vi' ? 'Năm Nay' : 'This Year',
-              settingsProvider.language == 'vi' ? 'Tất Cả' : 'All Time',
-            ]
-                .map((period) => DropdownMenuItem(
-                      value: period,
-                      child: Text(period),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedPeriod = value;
-                });
-              }
-            },
-          ),
-        ],
-      ),
-      body: Consumer<ExpenseProvider>(
-        builder: (ctx, expenseProvider, child) {
-          final expenses = expenseProvider.expenses;
-          if (expenses.isEmpty) {
-            return Center(
-              child: Text(settingsProvider.translate('no_transactions')),
-            );
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildExpenseTrendChart(expenses, settingsProvider),
-                const SizedBox(height: 24),
-                _buildCategoryComparison(expenseProvider, settingsProvider),
-                const SizedBox(height: 24),
-                _buildTopExpenses(expenses, expenseProvider, settingsProvider),
-              ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(settingsProvider.translate('statistics')),
+          actions: [
+            DropdownButton<String>(
+              value: _selectedPeriod,
+              items: [
+                settingsProvider.language == 'vi' ? 'Tuần Này' : 'This Week',
+                settingsProvider.language == 'vi' ? 'Tháng Này' : 'This Month',
+                settingsProvider.language == 'vi' ? 'Năm Nay' : 'This Year',
+                settingsProvider.language == 'vi' ? 'Tất Cả' : 'All Time',
+              ]
+                  .map((period) => DropdownMenuItem(
+                        value: period,
+                        child: Text(period),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedPeriod = value;
+                  });
+                }
+              },
             ),
-          );
-        },
+          ],
+        ),
+        body: Consumer<ExpenseProvider>(
+          builder: (ctx, expenseProvider, child) {
+            final expenses = expenseProvider.expenses;
+            if (expenses.isEmpty) {
+              return Center(
+                child: Text(settingsProvider.translate('no_transactions')),
+              );
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildExpenseTrendChart(expenses, settingsProvider),
+                  const SizedBox(height: 24),
+                  _buildCategoryComparison(expenseProvider, settingsProvider),
+                  const SizedBox(height: 24),
+                  _buildTopExpenses(expenses, expenseProvider, settingsProvider),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

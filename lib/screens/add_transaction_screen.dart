@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/expense_provider.dart';
 import '../providers/settings_provider.dart';
 import 'package:expense_tracker_app/models/category.dart' as myapp;
+import 'package:flutter/services.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -60,158 +61,162 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(settingsProvider.translate('add_transaction')),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Transaction Type Toggle
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ChoiceChip(
-                          label: Text(settingsProvider.translate('expense')),
-                          selected: _isExpense,
-                          onSelected: (selected) {
-                            setState(() {
-                              _isExpense = selected;
-                            });
-                          },
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(settingsProvider.translate('add_transaction')),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Transaction Type Toggle
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ChoiceChip(
+                            label: Text(settingsProvider.translate('expense')),
+                            selected: _isExpense,
+                            onSelected: (selected) {
+                              setState(() {
+                                _isExpense = selected;
+                              });
+                            },
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: ChoiceChip(
-                          label: Text(settingsProvider.translate('income')),
-                          selected: !_isExpense,
-                          onSelected: (selected) {
-                            setState(() {
-                              _isExpense = !selected;
-                            });
-                          },
+                        Expanded(
+                          child: ChoiceChip(
+                            label: Text(settingsProvider.translate('income')),
+                            selected: !_isExpense,
+                            onSelected: (selected) {
+                              setState(() {
+                                _isExpense = !selected;
+                              });
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Title Field
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: settingsProvider.translate('title'),
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return settingsProvider.translate('please_enter_title');
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Amount Field
-              TextFormField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: settingsProvider.translate('amount'),
-                  border: const OutlineInputBorder(),
-                  prefixText: settingsProvider.currency == 'VND' ? '₫ ' : '\$ ',
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return settingsProvider.translate('please_enter_amount');
-                  }
-                  if (double.tryParse(value) == null) {
-                    return settingsProvider.translate('please_enter_valid_number');
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Date Field
-              InkWell(
-                onTap: _selectDate,
-                child: InputDecorator(
+                // Title Field
+                TextFormField(
+                  controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: settingsProvider.translate('date'),
+                    labelText: settingsProvider.translate('title'),
                     border: const OutlineInputBorder(),
                   ),
-                  child: Text(
-                    DateFormat.yMMMd().format(_selectedDate),
-                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return settingsProvider.translate('please_enter_title');
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Category Selection
-              Consumer<ExpenseProvider>(
-                builder: (ctx, expenseProvider, child) {
-                  final categories = expenseProvider.categories;
-                  return DropdownButtonFormField<myapp.Category>(
+                // Amount Field
+                TextFormField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: settingsProvider.translate('amount'),
+                    border: const OutlineInputBorder(),
+                    prefixText: settingsProvider.currency == 'VND' ? '₫ ' : '\$ ',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return settingsProvider.translate('please_enter_amount');
+                    }
+                    if (double.tryParse(value) == null) {
+                      return settingsProvider.translate('please_enter_valid_number');
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Date Field
+                InkWell(
+                  onTap: _selectDate,
+                  child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: settingsProvider.translate('category'),
+                      labelText: settingsProvider.translate('date'),
                       border: const OutlineInputBorder(),
                     ),
-                    value: _selectedCategory,
-                    items: categories.map((category) {
-                      return DropdownMenuItem(
-                        value: category,
-                        child: Row(
-                          children: [
-                            Icon(category.icon, color: category.color),
-                            const SizedBox(width: 8),
-                            Text(category.name),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return settingsProvider.translate('please_select_category');
-                      }
-                      return null;
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    _isExpense
-                        ? settingsProvider.translate('add_expense')
-                        : settingsProvider.translate('add_income'),
-                    style: const TextStyle(fontSize: 16),
+                    child: Text(
+                      DateFormat.yMMMd().format(_selectedDate),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // Category Selection
+                Consumer<ExpenseProvider>(
+                  builder: (ctx, expenseProvider, child) {
+                    final categories = expenseProvider.categories;
+                    return DropdownButtonFormField<myapp.Category>(
+                      decoration: InputDecoration(
+                        labelText: settingsProvider.translate('category'),
+                        border: const OutlineInputBorder(),
+                      ),
+                      value: _selectedCategory,
+                      items: categories.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Row(
+                            children: [
+                              Icon(category.icon, color: category.color),
+                              const SizedBox(width: 8),
+                              Text(category.name),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return settingsProvider.translate('please_select_category');
+                        }
+                        return null;
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      _isExpense
+                          ? settingsProvider.translate('add_expense')
+                          : settingsProvider.translate('add_income'),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import '../providers/theme_provider.dart';
 import '../providers/settings_provider.dart';
 import 'dart:convert';
 import 'dart:html' as html;
+import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,19 +13,23 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(settingsProvider.translate('profile')),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildProfileHeader(context, settingsProvider),
-          const SizedBox(height: 24),
-          _buildSettingsSection(context, settingsProvider),
-          const SizedBox(height: 24),
-          _buildAppInfoSection(context, settingsProvider),
-        ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(settingsProvider.translate('profile')),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildProfileHeader(context, settingsProvider),
+            const SizedBox(height: 24),
+            _buildSettingsSection(context, settingsProvider),
+            const SizedBox(height: 24),
+            _buildAppInfoSection(context, settingsProvider),
+          ],
+        ),
       ),
     );
   }
